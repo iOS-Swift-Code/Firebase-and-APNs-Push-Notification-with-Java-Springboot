@@ -1,5 +1,6 @@
 package com.kshrd.controller;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,7 +32,7 @@ public class RestController {
 
 	public static void main(String[] arg) {
 		RestController obj = new RestController();
-		obj.firebasePush() ;
+		obj.applePush() ;
 	}
 
 	private void firebasePush() {
@@ -98,7 +99,7 @@ public class RestController {
 	private void applePush() {
 		System.out.println("Sending an iOS push notification...");
 
-		String token = "";
+		String token = "DF3AD4728D8A1BC47BB81DEC9447821EDE1F0B3BF19113D10F615515930643B0";
 		String type = "dev";
 		String message = "the test push notification message";
 
@@ -114,8 +115,10 @@ public class RestController {
 			serviceBuilder.withCert(certPath, "password").withProductionDestination();
 		} else if (type.equals("dev")) {
 			System.out.println("using dev API");
-			String certPath = RestController.class.getResource("dev_cert.p12").getPath();
-			serviceBuilder.withCert(certPath, "password").withSandboxDestination();
+			//String certPath = RestController.class.getResource("aps_dev_credentials.p12").getPath();
+			
+			File file = new File("dev_cert.p12");
+			serviceBuilder.withCert(file.getAbsolutePath(), "password").withSandboxDestination();
 		} else {
 			System.out.println("unknown API type " + type);
 			return;
@@ -124,8 +127,12 @@ public class RestController {
 		// Create Apns Service
 		ApnsService service = serviceBuilder.build();
 		// Payload with custom fields
-		String payload = APNS.newPayload().customField("title", "title").alertBody(message).badge(10).sound("default")
-				.customField("custom", "custom value").build();
+		String payload = APNS.newPayload()
+				.customField("title", "title")
+				.alertBody(message).badge(10)
+				.sound("default")
+				.customField("custom", "custom value")
+				.build();
 
 		// /* APPLE */
 		// // reference:
