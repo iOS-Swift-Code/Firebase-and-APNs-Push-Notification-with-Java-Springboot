@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 
+import com.google.gson.Gson;
 import com.notnoop.apns.APNS;
 import com.notnoop.apns.ApnsService;
 import com.notnoop.apns.ApnsServiceBuilder;
@@ -52,7 +53,7 @@ public class RestController {
 		// Multiple token
 		String[] ids = {
 				"dkPe1Q3IoNo:APA91bHIbrKk9NmCXDCp-HTl8PCXT7huE6Hav5YV6pw5Jr7d5FKRhSny8fuOgQ2POlza6LVvAlbMqURMuqgpWwFIgufj_Cgd_XbimC_iZQkPNjzgZk0f7UpNZGkGXzlORqg4PeHtDG7r",
-				"dkPe1Q3IoNo:APA91bHIbrKk9NmCXDCp-HTl8PCXT7huE6Hav5YV6pw5Jr7d5FKRhSny8fuOgQ2POlza6LVvAlbMqURMuqgpWwFIgufj_Cgd_XbimC_iZQkPNjzgZk0f7UpNZGkGXzlORqg4PeHtDG3r" };
+		"dkPe1Q3IoNo:APA91bHIbrKk9NmCXDCp-HTl8PCXT7huE6Hav5YV6pw5Jr7d5FKRhSny8fuOgQ2POlza6LVvAlbMqURMuqgpWwFIgufj_Cgd_XbimC_iZQkPNjzgZk0f7UpNZGkGXzlORqg4PeHtDG3r" };
 		message.put("registration_ids", ids);
 
 		// Notification property : check it Firebase website for more detail
@@ -99,10 +100,9 @@ public class RestController {
 	private void applePush() {
 		System.out.println("Sending an iOS push notification...");
 
-		String token = "DF3AD4728D8A1BC47BB81DEC9447821EDE1F0B3BF19113D10F615515930643B0";
+		String token = "";
 		String type = "dev";
-		String message = "the test push notification message";
-
+		
 		System.out.println("The target token is " + token);
 
 		// Create Apns Service builder
@@ -116,9 +116,9 @@ public class RestController {
 		} else if (type.equals("dev")) {
 			System.out.println("using dev API");
 			//String certPath = RestController.class.getResource("aps_dev_credentials.p12").getPath();
-			
+
 			File file = new File("dev_cert.p12");
-			serviceBuilder.withCert(file.getAbsolutePath(), "password").withSandboxDestination();
+			serviceBuilder.withCert(file.getAbsolutePath(), "123456").withSandboxDestination();
 		} else {
 			System.out.println("unknown API type " + type);
 			return;
@@ -126,39 +126,52 @@ public class RestController {
 
 		// Create Apns Service
 		ApnsService service = serviceBuilder.build();
-		// Payload with custom fields
+		
+		String message = "the test push notification message";
+		// Payload with custom fields, Note using APNS no alert title
 		String payload = APNS.newPayload()
 				.customField("title", "title")
-				.alertBody(message).badge(10)
+				.alertBody(message)
+				.badge(10)
 				.sound("default")
 				.customField("custom", "custom value")
 				.build();
 
-		// /* APPLE */
-		// // reference:
+		//		/***** APPLE *****/
+		//		// reference:
+		//		// http://stackoverflow.com/questions/11236630/can-apple-push-notifications-send-more-parameters-than-alert-and-sound
+		//		
+		//		/***** Method 2 *****/
+		//		Map<String, Object> alert = new HashMap<>();
+		//		alert.put("title", "Notification Title");
+		//		alert.put("body", "The test push notification message");
+		//		alert.put("category", "Personal");
+		//		alert.put("custom in", "custom in");
+		//		
+		//		/* The application Dictionnary */
+		//		Map<String, Object> apsDictionary = new HashMap<>();
+		//		apsDictionary.put("badge", 3);
+		//		apsDictionary.put("sound", "cat.caf");
+		//		apsDictionary.put("alert", alert);
+		//		
+		//		/* The root Payload */
+		//		Map<String, Object> payload = new HashMap<>();
+		//		payload.put("aps", apsDictionary);
+		//
+		//		// custom dictionnary with a string value
+		//		payload.put("customName", "customValue");
+		//		payload.put("message", "Some custom message for your app");
+		//		payload.put("id", 1234);
+		//		
+		//		Gson gson = new Gson(); 
+		//		String json = gson.toJson(payload); 
 
-		// http://stackoverflow.com/questions/11236630/can-apple-push-notifications-send-more-parameters-than-alert-and-sound
-		// /* The root Payload */
-		// Map<String, Object> payload = new HashMap<>();
-		// /* The application Dictionnary */
-		// Map<String, Object> apsDictionary = new HashMap<>();
-		// apsDictionary.put("badge", 1);
-		// apsDictionary.put("sound", "cat.caf");
-		// apsDictionary.put("alert", "alert");
-		// payload.put("aps", apsDictionary);
 
-		// // custom dictionnary with a string value
-		// payload.put("customName", "customValue");
-		// payload.put("message", "Some custom message for your app");
-		// payload.put("id", 1234);
+		//		/***** Method 3 *****/
+		//		// String payload example:
+		//		String payload = "{\"aps\":{\"badge\":10,\"sound\":\"default\",\"alert\":{\"title\":\"My Title 1\",\"body\":\"My message 1\",\"category\":\"Personal\",\"custom in\":\"custom value in\"},\"custom out\":\"custom out\"}}";
 
-		//// Payload with custom fields
-		// String payload = APNS.newPayload()
-		// .alertBody(message).build();
 
-		//// String payload example:
-		// String payload = "{\"aps\":{\"alert\":{\"title\":\"My Title
-		//// 1\",\"body\":\"My message 1\",\"category\":\"Personal\"}}}";
 
 		System.out.println("payload: " + payload);
 		service.push(token, payload);
