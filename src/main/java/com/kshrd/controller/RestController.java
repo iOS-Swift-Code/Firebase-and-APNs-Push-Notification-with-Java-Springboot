@@ -123,7 +123,7 @@ public class RestController {
 			System.out.println("unknown API type " + type);
 			return;
 		}
-
+        
 		// Create Apns Service
 		ApnsService service = serviceBuilder.build();
 		
